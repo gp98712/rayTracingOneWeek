@@ -19,4 +19,18 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="vec3.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="진도" />
+  </ItemGroup>
 </Project>
