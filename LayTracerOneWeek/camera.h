@@ -10,6 +10,8 @@ class camera {
 public:
 	double aspect_ratio = 1.0;
 	int image_width = 100;
+	int samples_per_pixel = 10;
+	int    max_depth = 10;   // Maximum number of ray bounces into scene
 
 	void render(const hittable& world) {
 		initialize();
@@ -19,12 +21,13 @@ public:
 		for (int j = 0; j < image_height; ++j) {
 			std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
 			for (int i = 0; i < image_width; ++i) {
-				auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-				auto ray_direction = pixel_center - center;
-				ray r(center, ray_direction);
+				color pixel_color(0, 0, 0);
+				for(int sample = 0; sample < samples_per_pixel; ++sample) {
+					ray r = get_ray(i, j);
+					pixel_color += ray_color(r, max_depth, world);
+				}
 
-				color pixel_color = ray_color(r, world);
-				write_color(std::cout, pixel_color);
+				write_color(std::cout, pixel_color, samples_per_pixel);
 			}
 		}
 
@@ -45,7 +48,7 @@ private:
 		center = point3(0, 0, 0);
 
 		// Determine viewport dimensions.
-		auto focal_length = 1.0;
+		auto focal_length = 1.0; // 시점거리.
 		auto viewport_height = 2.0;
 		auto viewport_width = viewport_height * (static_cast<double>(image_width) / image_height);
 
@@ -60,18 +63,43 @@ private:
 		// Calculate the location of the upper left pixel.
 		auto viewport_upper_left =
 			center - vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
+
+		// 멀티샘플링을 생각해보면 이해하기 왜 0.5가 곱해졌는지 이해하기 편하다.
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 	}
 
-	color ray_color(const ray& r, const hittable& world) {
+	color ray_color(const ray& r,int depth, const hittable& world) {
 		hit_record rec;
 
-		if (world.hit(r, 0, infinity, rec)) {
-			return 0.5 * (rec.normal + color(1, 1, 1));
+		if (depth <= 0) {
+			return color(0, 0, 0);
+		}
+
+		interval value = interval(0.001,infinity);
+
+		if (world.hit(r, value, rec)) {
+			vec3 direction = rec.normal + random_unit_vector();
+			return 0.9 * ray_color(ray(rec.p, direction), depth - 1, world);
 		}
 
 		vec3 unit_direction = unit_vector(r.direction());
 		auto a = 0.5 * (unit_direction.y() + 1.0); // 0.0 ~ 1.0 으로 정규화.
 		return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+	}
+
+	ray get_ray(int i, int j) const {
+		auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+		auto pixel_sample = pixel_center + pixel_sample_square();
+		auto ray_origin = center;
+		auto ray_direction = pixel_sample - ray_origin;
+
+		return ray(ray_origin, ray_direction);
+	}
+
+	vec3 pixel_sample_square() const {
+		auto px = -0.5 + random_double();
+		auto py = -0.5 + random_double();
+
+		return (px * pixel_delta_u) + (py * pixel_delta_v);
 	}
 };
