@@ -78,7 +78,13 @@ private:
 		interval value = interval(0.001,infinity);
 
 		if (world.hit(r, value, rec)) {
-			vec3 direction = rec.normal + random_unit_vector();
+			/*
+			* 핵심
+			* 9.4절 Lambertian Reflection 구현을
+			* 
+			* 교차점 p의 normal 방향으로 뛰어진 구를 기준으로 랜덤한 unit vector를 만들어서 쓴다.
+			*/
+			vec3 direction = rec.normal + random_unit_vector(); // 핵심.
 			return 0.9 * ray_color(ray(rec.p, direction), depth - 1, world);
 		}
 
