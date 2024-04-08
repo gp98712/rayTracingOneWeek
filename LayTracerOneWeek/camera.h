@@ -1,6 +1,7 @@
 #pragma once
 #include "vec3.h"
 #include "hittable.h"
+#include "material.h"
 #include "rtweekend.h"
 #include "color.h"
 
@@ -84,8 +85,13 @@ private:
 			* 
 			* 교차점 p의 normal 방향으로 뛰어진 구를 기준으로 랜덤한 unit vector를 만들어서 쓴다.
 			*/
-			vec3 direction = rec.normal + random_unit_vector(); // 핵심.
-			return 0.9 * ray_color(ray(rec.p, direction), depth - 1, world);
+			ray scattered;
+			color attenuation;
+			if (rec.mat->scatter(r, rec, attenuation, scattered)) {
+				return attenuation * ray_color(scattered, depth - 1, world);
+			}
+
+			return color(0, 0, 0);
 		}
 
 		vec3 unit_direction = unit_vector(r.direction());

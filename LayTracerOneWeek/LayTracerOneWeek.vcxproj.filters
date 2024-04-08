@@ -47,6 +47,9 @@
     <ClInclude Include="interval.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="material.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="진도" />
